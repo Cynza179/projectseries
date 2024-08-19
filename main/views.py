@@ -5,14 +5,28 @@ import pandas as pd
 import io
 import base64
 
+def leer_archivo_con_codificacion(file):
+    codificaciones = ['utf-8', 'windows-1252', 'latin-1']
+
+    for codificacion in codificaciones:
+        try:
+            contenido = file.read().decode(codificacion)
+            print(f"Archivo leído con codificación: {codificacion}")
+            return contenido
+        except UnicodeDecodeError:
+            print(f"Error al leer con codificación {codificacion}. Intentando con la siguiente...")
+
+    raise ValueError("Ninguna de las codificaciones fue exitosa.")
+
 @login_required
 def index(request):
     if request.method == 'POST' and request.FILES.get('file'):
         file = request.FILES['file']
         
         try:
-            # Leer el archivo
-            df = pd.read_csv(io.StringIO(file.read().decode("ANSI")), sep="|", on_bad_lines='skip')
+            # Leer el archivo usando diferentes codificaciones
+            contenido = leer_archivo_con_codificacion(file)
+            df = pd.read_csv(io.StringIO(contenido), sep="|", on_bad_lines='skip')
             
             # Procesar el DataFrame como en tu script original
             nombres_columnas = ['Periodo', 'CUO', 'Corre_CUO','F_Emision','F_Vcmto','Tipo_CdP','Serie_CdP','Corr_CdP','Consolidado','Tipo_Doc','Num_Doc','Denom_Social','Valor_Export',
